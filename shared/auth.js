@@ -5,29 +5,29 @@ import bcrypt from 'bcrypt';
 export const createTokens = async (user, secret, secret2) => {
   const createToken = jwt.sign(
     {
-      user: _.pick(user, ['id'])
+      user: _.pick(user, ['id']),
     },
     secret,
     {
-      expiresIn: '20h'
-    }
+      expiresIn: '20h',
+    },
   );
 
   const createRefreshToken = jwt.sign(
     {
-      user: _.pick(user, 'id')
+      user: _.pick(user, 'id'),
     },
     secret2,
     {
-      expiresIn: '7d'
-    }
+      expiresIn: '7d',
+    },
   );
 
   return [createToken, createRefreshToken];
 };
 
-export const refreshTokens = async (token, refreshToken, models, SECRET) => {
-  let userId = -1;
+export const refreshTokens = async (token, refreshToken, models, SECRET, SECRET2) => {
+  let userId = 0;
   try {
     const { user: { id } } = jwt.decode(refreshToken);
     userId = id;
@@ -45,21 +45,19 @@ export const refreshTokens = async (token, refreshToken, models, SECRET) => {
     return {};
   }
 
+  const refreshSecret = `${user.password}${SECRET2}`;
+
   try {
-    jwt.verify(refreshToken, user.refreshSecret);
+    jwt.verify(refreshToken, refreshSecret);
   } catch (err) {
     return {};
   }
 
-  const [newToken, newRefreshToken] = await createTokens(
-    user,
-    SECRET,
-    user.refreshSecret
-  );
+  const [newToken, newRefreshToken] = await createTokens(user, SECRET, refreshSecret);
   return {
     token: newToken,
     refreshToken: newRefreshToken,
-    user
+    user,
   };
 };
 
@@ -69,7 +67,7 @@ export const tryLogin = async (email, password, models, SECRET, SECRET2) => {
     // user with provided email not found
     return {
       ok: false,
-      errors: [{ path: 'email', message: 'Invalid email address' }]
+      errors: [{ path: 'email', message: 'Invalid email address' }],
     };
   }
 
@@ -78,21 +76,17 @@ export const tryLogin = async (email, password, models, SECRET, SECRET2) => {
     // bad password
     return {
       ok: false,
-      errors: [{ path: 'password', message: 'Incorrect password' }]
+      errors: [{ path: 'password', message: 'Incorrect password' }],
     };
   }
 
   const refreshTokenSecret = `${user.password}${SECRET2}`;
 
-  const [token, refreshToken] = await createTokens(
-    user,
-    SECRET,
-    refreshTokenSecret
-  );
+  const [token, refreshToken] = await createTokens(user, SECRET, refreshTokenSecret);
 
   return {
     ok: true,
     token,
-    refreshToken
+    refreshToken,
   };
 };
