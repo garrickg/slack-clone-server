@@ -4,12 +4,17 @@ export default `
         owner: User!
         members: [User!]!
         channels: [Channel!]!
-        teams: [Team!]!
+        name: String!
     }
 
     type CreateTeamResponse {
         ok: Boolean!
+        team: Team!
         errors: [Error!]
+    }
+
+    type Query {
+        allTeams: [Team!]!
     }
 
     type Mutation {
