@@ -14,12 +14,6 @@ export default (sequelize, DataTypes) => {
         field: 'team_id',
       },
     });
-    Team.belongsTo(models.User, {
-      foreignKey: {
-        name: 'owner',
-        field: 'owner',
-      },
-    });
   };
 
   return Team;

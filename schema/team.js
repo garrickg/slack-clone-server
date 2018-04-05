@@ -1,10 +1,10 @@
 export default `
     type Team {
         id: Int!
-        owner: Int!
         members: [User!]!
         channels: [Channel!]!
         name: String!
+        admin: Boolean!
     }
 
     type CreateTeamResponse {

@@ -8,7 +8,6 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import { createServer } from 'http';
 import { execute, subscribe } from 'graphql';
-import { PubSub } from 'graphql-subscriptions';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 
 import models from './models';
@@ -74,13 +73,28 @@ const server = createServer(app);
 models.sequelize.sync().then(() => {
   server.listen(8080, () => {
     // eslint-disable-next-line no-new
-    new SubscriptionServer({
-      execute,
-      subscribe,
-      schema,
-    }, {
-      server,
-      path: '/subscriptions',
-    });
+    new SubscriptionServer(
+      {
+        execute,
+        subscribe,
+        schema,
+        onConnect: async ({ token, refreshToken }, webSocket) => {
+          if (token && refreshToken) {
+            try {
+              const { user } = jwt.verify(token, SECRET);
+              return { models, user };
+            } catch (err) {
+              const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2);
+              return { user: newTokens.user };
+            }
+          }
+          return { models };
+        },
+      },
+      {
+        server,
+        path: '/subscriptions',
+      },
+    );
   });
 });
