@@ -1,7 +1,7 @@
 export default `
     type Team {
         id: Int!
-        members: [User!]!
+        directMessageMembers: [User!]!
         channels: [Channel!]!
         name: String!
         admin: Boolean!
