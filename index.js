@@ -70,7 +70,7 @@ app.use('/graphiql', graphiqlExpress({ endpointURL: graphqlEndpoint }));
 
 const server = createServer(app);
 
-models.sequelize.sync().then(() => {
+models.sequelize.sync({ force: !!process.env.TEST_DB }).then(() => {
   server.listen(8080, () => {
     // eslint-disable-next-line no-new
     new SubscriptionServer(
